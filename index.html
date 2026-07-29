@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EOULSURE TELEMETRY v5.6 - SECURE</title>
+    <title>EOULSURE TELEMETRY - SECURE</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -136,64 +136,6 @@
             background-image: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0) 100%);
         }
 
-        .gauge-container {
-            display: flex;
-            gap: 25px;
-            background: var(--panel-bg);
-            padding: 25px 30px;
-            border-radius: 20px;
-            justify-content: space-around;
-            border: var(--border-highlight);
-            box-shadow: var(--shadow-panel);
-        }
-
-        .battery-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            flex: 1;
-            justify-content: center;
-        }
-
-        .battery-info {
-            text-align: center;
-            width: 100%;
-        }
-
-        .batt-label {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        .batt-percent {
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-
-        .battery-icon {
-            width: 100%;
-            max-width: 160px;
-            height: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-        .battery-level {
-            height: 100%;
-            width: 0%;
-            border-radius: 12px;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s ease;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-        }
-
         .charts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
@@ -314,6 +256,39 @@
         .status-line { margin-top:8px; font-size:0.75rem; color:var(--text-dim); overflow-wrap:anywhere; }
         .map-card { background:var(--panel-bg); border:var(--border-highlight); border-radius:20px; padding:20px; box-shadow:var(--shadow-panel); }
         #track-map { width:100%; height:430px; border-radius:14px; background:#08090b; }
+        .leaflet-tooltip.telemetry-track-tooltip {
+            padding: 10px 12px;
+            border: 1px solid rgba(46, 204, 113, 0.45);
+            border-radius: 10px;
+            background: rgba(10, 12, 16, 0.94);
+            color: var(--text-main);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+            font-family: 'JetBrains Mono', sans-serif;
+        }
+        .leaflet-tooltip.telemetry-track-tooltip::before {
+            border-top-color: rgba(10, 12, 16, 0.94);
+        }
+        .track-tooltip-title {
+            margin-bottom: 7px;
+            color: var(--accent-green);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+        }
+        .track-tooltip-row {
+            display: flex;
+            min-width: 190px;
+            justify-content: space-between;
+            gap: 18px;
+            font-size: 0.76rem;
+            line-height: 1.7;
+        }
+        .track-tooltip-row span:first-child { color: var(--text-dim); }
+        .track-tooltip-sync {
+            margin-top: 5px;
+            color: var(--text-dim);
+            font-size: 0.65rem;
+        }
         .lap-grid { display:grid; grid-template-columns:repeat(4,minmax(120px,1fr)); gap:12px; margin-bottom:15px; }
         .lap-stat { border:var(--border-primary); border-radius:10px; padding:12px; background:rgba(255,255,255,0.025); }
         .lap-stat span { display:block; }
@@ -364,8 +339,20 @@
 
         <div class="data-group">
             <div class="group-title">HV System</div>
-            <div class="data-row"><span class="data-label">Volt</span> <div><span id="val-hv-volt" class="data-val" style="color:var(--accent-red)">0.0</span><span class="unit">V</span></div></div>
+            <div class="data-row"><span class="data-label">Cell High</span> <div><span id="val-hv-cell-high" class="data-val" style="color:var(--accent-red)">0.0000</span><span class="unit">V</span></div></div>
+            <div class="data-row"><span class="data-label">Cell Low</span> <div><span id="val-hv-cell-low" class="data-val" style="color:var(--accent-blue)">0.0000</span><span class="unit">V</span></div></div>
+            <div class="data-row"><span class="data-label">HV Current</span> <div><span id="val-hv-current" class="data-val" style="color:var(--accent-green)">0</span><span class="unit">A</span></div></div>
             <div class="data-row"><span class="data-label">Temp</span> <div><span id="val-hv-temp" class="data-val">0</span><span class="unit">°C</span></div></div>
+            <div class="data-row"><span class="data-label">SOC</span> <div><span id="val-soc" class="data-val" style="color:var(--accent-yellow)">0</span><span class="unit">%</span></div></div>
+        </div>
+
+        <div class="data-group">
+            <div class="group-title">Thermal System</div>
+            <div class="data-row"><span class="data-label">Motor</span> <div><span id="val-motor-temp" class="data-val" style="color:var(--accent-orange)">0</span><span class="unit">°C</span></div></div>
+            <div class="data-row"><span class="data-label">Inverter</span> <div><span id="val-inverter-temp" class="data-val" style="color:var(--accent-red)">0</span><span class="unit">°C</span></div></div>
+            <div class="data-row"><span class="data-label">Radiator 1</span> <div><span id="val-radiator-temp-1" class="data-val" style="color:var(--accent-blue)">0</span><span class="unit">°C</span></div></div>
+            <div class="data-row"><span class="data-label">Radiator 2</span> <div><span id="val-radiator-temp-2" class="data-val" style="color:var(--accent-purple)">0</span><span class="unit">°C</span></div></div>
+            <div class="data-row"><span class="data-label">Radiator 3</span> <div><span id="val-radiator-temp-3" class="data-val" style="color:var(--accent-green)">0</span><span class="unit">°C</span></div></div>
         </div>
 
         <div class="data-group">
@@ -396,38 +383,6 @@
             <div id="track-map"></div>
             <div class="status-line">‘스타트 라인 설정’을 누른 뒤 지도에서 두 점을 선택하세요.</div>
         </div>
-        <div class="gauge-container">
-            <div class="battery-wrapper">
-                <div class="battery-info">
-                    <span class="batt-label">HV SOC</span>
-                    <span class="batt-percent" id="soc-hv-text" style="color:var(--accent-yellow)">0%</span>
-                </div>
-                <div class="battery-icon">
-                    <div class="battery-level" id="soc-hv-bar" style="background-color:var(--accent-yellow)"></div>
-                </div>
-            </div>
-
-            <div class="battery-wrapper">
-                <div class="battery-info">
-                    <span class="batt-label">LV1 MAIN</span>
-                    <span class="batt-percent" id="soc-lv1-text" style="color:var(--accent-blue)">0%</span>
-                </div>
-                <div class="battery-icon">
-                    <div class="battery-level" id="soc-lv1-bar" style="background-color:var(--accent-blue)"></div>
-                </div>
-            </div>
-
-            <div class="battery-wrapper">
-                <div class="battery-info">
-                    <span class="batt-label">LV2 AUX</span>
-                    <span class="batt-percent" id="soc-lv2-text" style="color:var(--accent-purple)">0%</span>
-                </div>
-                <div class="battery-icon">
-                    <div class="battery-level" id="soc-lv2-bar" style="background-color:var(--accent-purple)"></div>
-                </div>
-            </div>
-        </div>
-
         <div class="charts-grid">
             <div class="chart-card">
                 <div class="chart-title">DRIVING DYNAMICS</div>
@@ -440,13 +395,33 @@
             </div>
 
             <div class="chart-card">
-                <div class="chart-title">HV TOTAL VOLTAGE</div>
+                <div class="chart-title">HV CELL VOLTAGE</div>
                 <div class="canvas-container"><canvas id="chart-hv-volt"></canvas></div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">HV CURRENT</div>
+                <div class="canvas-container"><canvas id="chart-hv-current"></canvas></div>
             </div>
 
             <div class="chart-card">
                 <div class="chart-title">HV TEMPERATURE</div>
                 <div class="canvas-container"><canvas id="chart-hv-stat"></canvas></div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">MOTOR TEMPERATURE</div>
+                <div class="canvas-container"><canvas id="chart-motor-temp"></canvas></div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">INVERTER TEMPERATURE</div>
+                <div class="canvas-container"><canvas id="chart-inverter-temp"></canvas></div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">RADIATOR TEMPERATURE</div>
+                <div class="canvas-container"><canvas id="chart-radiator-temp"></canvas></div>
             </div>
 
             <div class="chart-card">
@@ -458,7 +433,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import {
+            getDatabase, ref, onValue, set, push, get, update, runTransaction,
+            onDisconnect, increment, serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -590,36 +568,6 @@
             0x47C1: "Vehicle Service Required"
         };
 
-        function getLiFePO4Percentage(voltage) {
-            if (!voltage || voltage < 10.0) return 0;
-            if (voltage >= 13.4) return 100;
-            if (voltage >= 13.3) return 90;
-            if (voltage >= 13.2) return 70;
-            if (voltage >= 13.1) return 40;
-            if (voltage >= 13.0) return 30;
-            if (voltage >= 12.9) return 20;
-            if (voltage >= 12.8) return 15;
-            if (voltage >= 12.5) return 10;
-            if (voltage >= 12.0) return 5;
-            return 0;
-        }
-
-        function updateGauge(barId, textId, percent) {
-            const bar = document.getElementById(barId);
-            const text = document.getElementById(textId);
-
-            const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
-
-            text.innerText = safePercent + "%";
-            bar.style.width = safePercent + "%";
-
-            if (safePercent <= 20) {
-                bar.style.backgroundColor = "var(--accent-red)";
-            } else {
-                bar.style.backgroundColor = "";
-            }
-        }
-
         Chart.defaults.color = '#7a7a85';
         Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.06)';
         Chart.defaults.font.family = "'JetBrains Mono', sans-serif";
@@ -628,8 +576,22 @@
 
         const chartDrive = createChart('chart-drive', ['Speed (km/h)', 'RPM'], ['#2ecc71', '#f39c12'], true);
         const chartLv = createChart('chart-lv', ['LV1 (V)', 'LV2 (V)'], ['#3498db', '#9b59b6'], false);
-        const chartHvVolt = createChart('chart-hv-volt', ['HV Volt (V)'], ['#e74c3c'], false);
+        const chartHvVolt = createChart(
+            'chart-hv-volt',
+            ['Cell High (V)', 'Cell Low (V)'],
+            ['#e74c3c', '#3498db'],
+            false
+        );
+        const chartHvCurrent = createChart('chart-hv-current', ['HV Current (A)'], ['#2ecc71'], false);
         const chartHvStat = createChart('chart-hv-stat', ['Temp (°C)'], ['#ffffff'], false);
+        const chartMotorTemp = createChart('chart-motor-temp', ['Motor (°C)'], ['#f39c12'], false);
+        const chartInverterTemp = createChart('chart-inverter-temp', ['Inverter (°C)'], ['#e74c3c'], false);
+        const chartRadiatorTemp = createChart(
+            'chart-radiator-temp',
+            ['Radiator 1 (°C)', 'Radiator 2 (°C)', 'Radiator 3 (°C)'],
+            ['#3498db', '#9b59b6', '#2ecc71'],
+            false
+        );
         const chartG = createChart('chart-gforce', ['Lat X', 'Long Y'], ['#3498db', '#888888'], false);
 
         function createChart(id, labels, colors, dualAxis = false) {
@@ -700,12 +662,36 @@
         let activeSessionId = null;
         let previousPosition = null;
         let latestTelemetryTimestamp = 0;
+        let latestTelemetrySample = null;
         let lapStartTimestamp = null;
         let lastCrossingTimestamp = 0;
         let lapNumber = 0;
         let bestLapMs = null;
         let startLinePoints = [];
         let settingStartLine = false;
+        let positionQueue = Promise.resolve();
+        let lastProcessedPositionTimestamp = 0;
+        let crossingDirection = 0;
+        let sessionHeartbeatTimer = null;
+        let sessionDisconnectRefs = [];
+        let lastSessionTelemetrySequence = null;
+        const routeHoverSegments = [];
+
+        const SESSION_STORAGE_KEY = 'eoulsureActiveSession';
+        const CLIENT_STORAGE_KEY = 'eoulsureClientInstance';
+        const SESSION_LEASE_MS = 30000;
+        const SESSION_HEARTBEAT_MS = 10000;
+        const MAX_TELEMETRY_REFERENCE_AGE_MS = 2000;
+        const MAX_ROUTE_POINTS = 20000;
+        const MAX_HOVER_SEGMENTS = 5000;
+        const CLIENT_INSTANCE_ID = (() => {
+            const saved = localStorage.getItem(CLIENT_STORAGE_KEY);
+            if (saved) return saved;
+            const created = self.crypto?.randomUUID?.()
+                || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+            localStorage.setItem(CLIENT_STORAGE_KEY, created);
+            return created;
+        })();
 
         const locationStartBtn = document.getElementById('location-start-btn');
         const locationStopBtn = document.getElementById('location-stop-btn');
@@ -724,6 +710,7 @@
         let vehicleMarker = null;
         let accuracyCircle = null;
         let routePolyline = L.polyline([], { color: '#2ecc71', weight: 3 }).addTo(map);
+        let routeHoverLayer = L.layerGroup().addTo(map);
         let startLineLayer = null;
 
         function loadStartLine() {
@@ -783,37 +770,124 @@
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
         }
 
-        async function processLapCrossing(previous, current) {
-            if (!activeSessionId || startLinePoints.length !== 2 || !previous) return;
+        function toFiniteNumber(value) {
+            const number = Number(value);
+            return Number.isFinite(number) ? number : null;
+        }
+
+        function createTrackTooltip(positionTimestamp, telemetrySample) {
+            const speedText = telemetrySample?.speed !== null && telemetrySample?.speed !== undefined
+                ? `${telemetrySample.speed.toFixed(1)} km/h`
+                : '--';
+            const radiator1Text = telemetrySample?.radiatorTemp1 !== null && telemetrySample?.radiatorTemp1 !== undefined
+                ? `${telemetrySample.radiatorTemp1.toFixed(1)} °C`
+                : '--';
+            const radiator2Text = telemetrySample?.radiatorTemp2 !== null && telemetrySample?.radiatorTemp2 !== undefined
+                ? `${telemetrySample.radiatorTemp2.toFixed(1)} °C`
+                : '--';
+            const radiator3Text = telemetrySample?.radiatorTemp3 !== null && telemetrySample?.radiatorTemp3 !== undefined
+                ? `${telemetrySample.radiatorTemp3.toFixed(1)} °C`
+                : '--';
+            const syncDelta = telemetrySample?.timestampMs
+                ? Math.abs(positionTimestamp - telemetrySample.timestampMs)
+                : null;
+            const sampleTime = new Date(positionTimestamp).toLocaleTimeString();
+
+            return `
+                <div class="track-tooltip-title">TRACK TELEMETRY · ${sampleTime}</div>
+                <div class="track-tooltip-row"><span>Speed</span><strong>${speedText}</strong></div>
+                <div class="track-tooltip-row"><span>Radiator 1</span><strong>${radiator1Text}</strong></div>
+                <div class="track-tooltip-row"><span>Radiator 2</span><strong>${radiator2Text}</strong></div>
+                <div class="track-tooltip-row"><span>Radiator 3</span><strong>${radiator3Text}</strong></div>
+                <div class="track-tooltip-sync">${syncDelta === null ? 'Telemetry sync unavailable' : `Telemetry Δ ${Math.round(syncDelta)} ms`}</div>
+            `;
+        }
+
+        function haversineDistanceMeters(a, b) {
+            const radius = 6371000;
+            const toRad = value => value * Math.PI / 180;
+            const dLat = toRad(b.lat - a.lat);
+            const dLon = toRad(b.lon - a.lon);
+            const lat1 = toRad(a.lat);
+            const lat2 = toRad(b.lat);
+            const value = Math.sin(dLat / 2) ** 2
+                + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+            return radius * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+        }
+
+        function lineSide(point, lineStart, lineEnd) {
+            return (
+                (lineEnd[1] - lineStart[1]) * (point.lat - lineStart[0])
+                - (lineEnd[0] - lineStart[0]) * (point.lon - lineStart[1])
+            );
+        }
+
+        async function processLapCrossing(previous, current, sessionId) {
+            if (!sessionId || startLinePoints.length !== 2 || !previous) return;
+            if (!previous.valid || !current.valid) return;
+            if (haversineDistanceMeters(previous, current) < 1.0) return;
             const ratio = segmentIntersectionRatio(
                 [previous.lat, previous.lon], [current.lat, current.lon],
                 startLinePoints[0], startLinePoints[1]
             );
             if (ratio === null) return;
+            const previousSide = lineSide(previous, startLinePoints[0], startLinePoints[1]);
+            const currentSide = lineSide(current, startLinePoints[0], startLinePoints[1]);
+            const currentDirection = Math.sign(currentSide - previousSide);
+            if (currentDirection === 0) return;
+            if (crossingDirection === 0) {
+                crossingDirection = currentDirection;
+            } else if (currentDirection !== crossingDirection) {
+                return;
+            }
             const crossingTs = Math.round(previous.ts + (current.ts - previous.ts) * ratio);
             if (crossingTs - lastCrossingTimestamp < 20000) return;
-            lastCrossingTimestamp = crossingTs;
 
             if (lapStartTimestamp !== null) {
                 const lapTimeMs = crossingTs - lapStartTimestamp;
-                lapNumber += 1;
-                bestLapMs = bestLapMs === null ? lapTimeMs : Math.min(bestLapMs, lapTimeMs);
+                const completedLapNumber = lapNumber + 1;
+                const nextBestLapMs = bestLapMs === null
+                    ? lapTimeMs
+                    : Math.min(bestLapMs, lapTimeMs);
+                await update(ref(db), {
+                    [`sessions/${sessionId}/laps/${completedLapNumber}`]: {
+                        lap_number: completedLapNumber,
+                        start_timestamp_ms: lapStartTimestamp,
+                        end_timestamp_ms: crossingTs,
+                        lap_time_ms: lapTimeMs,
+                        valid: true,
+                        server_timestamp_ms: serverTimestamp()
+                    },
+                    [`sessions/${sessionId}/meta/lap_count`]: completedLapNumber,
+                    [`sessions/${sessionId}/meta/current_lap_started_at`]: crossingTs,
+                    [`sessions/${sessionId}/meta/crossing_direction`]: crossingDirection
+                });
+                lapNumber = completedLapNumber;
+                bestLapMs = nextBestLapMs;
                 updateText('lap-last', formatLap(lapTimeMs));
                 updateText('lap-best', formatLap(bestLapMs));
-                await set(ref(db, `sessions/${activeSessionId}/laps/${lapNumber}`), {
-                    lap_number: lapNumber,
-                    start_timestamp_ms: lapStartTimestamp,
-                    end_timestamp_ms: crossingTs,
-                    lap_time_ms: lapTimeMs,
-                    valid: true,
-                    server_timestamp_ms: serverTimestamp()
+            } else {
+                await update(ref(db), {
+                    [`sessions/${sessionId}/meta/current_lap_started_at`]: crossingTs,
+                    [`sessions/${sessionId}/meta/crossing_direction`]: crossingDirection
                 });
             }
+            lastCrossingTimestamp = crossingTs;
             lapStartTimestamp = crossingTs;
         }
 
         async function uploadPosition(position) {
+            if (position.timestamp <= lastProcessedPositionTimestamp) return;
+            lastProcessedPositionTimestamp = position.timestamp;
             const c = position.coords;
+            const sessionId = activeSessionId;
+            const telemetryAge = latestTelemetrySample?.timestampMs
+                ? Math.abs(position.timestamp - latestTelemetrySample.timestampMs)
+                : Infinity;
+            const telemetryAtPosition = latestTelemetrySample
+                && telemetryAge <= MAX_TELEMETRY_REFERENCE_AGE_MS
+                ? { ...latestTelemetrySample }
+                : null;
             const locationData = {
                 sequence: ++locationSequence,
                 measurement_timestamp_ms: Math.round(position.timestamp),
@@ -826,10 +900,21 @@
                 heading_deg: Number.isFinite(c.heading) ? c.heading : null
             };
 
-            await set(ref(db, 'location/current'), locationData);
-            if (activeSessionId) {
-                await set(push(ref(db, `sessions/${activeSessionId}/location`)), locationData);
+            if (telemetryAtPosition) {
+                locationData.telemetry_timestamp_ms = telemetryAtPosition.timestampMs;
+                locationData.vehicle_speed_kmh = telemetryAtPosition.speed;
+                locationData.radiator_temp_1 = telemetryAtPosition.radiatorTemp1;
+                locationData.radiator_temp_2 = telemetryAtPosition.radiatorTemp2;
+                locationData.radiator_temp_3 = telemetryAtPosition.radiatorTemp3;
             }
+
+            const locationUpdates = { 'location/current': locationData };
+            if (sessionId) {
+                const locationKey = push(ref(db, `sessions/${sessionId}/location`)).key;
+                locationUpdates[`sessions/${sessionId}/location/${locationKey}`] = locationData;
+                locationUpdates[`sessions/${sessionId}/meta/location_count`] = increment(1);
+            }
+            await update(ref(db), locationUpdates);
 
             const latLng = [c.latitude, c.longitude];
             if (!vehicleMarker) {
@@ -844,9 +929,44 @@
                 accuracyCircle.setLatLng(latLng).setRadius(c.accuracy);
             }
             routePolyline.addLatLng(latLng);
+            const routePoints = routePolyline.getLatLngs();
+            if (routePoints.length > MAX_ROUTE_POINTS) {
+                routePolyline.setLatLngs(routePoints.slice(-MAX_ROUTE_POINTS));
+            }
 
-            const current = { lat: c.latitude, lon: c.longitude, ts: position.timestamp };
-            await processLapCrossing(previousPosition, current);
+            if (previousPosition) {
+                const hoverSegment = L.polyline(
+                    [[previousPosition.lat, previousPosition.lon], latLng],
+                    {
+                        color: '#ffffff',
+                        weight: 16,
+                        opacity: 0.01,
+                        interactive: true
+                    }
+                ).addTo(routeHoverLayer);
+                routeHoverSegments.push(hoverSegment);
+                if (routeHoverSegments.length > MAX_HOVER_SEGMENTS) {
+                    routeHoverLayer.removeLayer(routeHoverSegments.shift());
+                }
+
+                hoverSegment.bindTooltip(
+                    createTrackTooltip(position.timestamp, telemetryAtPosition),
+                    {
+                        className: 'telemetry-track-tooltip',
+                        direction: 'top',
+                        sticky: true,
+                        opacity: 1
+                    }
+                );
+            }
+
+            const current = {
+                lat: c.latitude,
+                lon: c.longitude,
+                ts: position.timestamp,
+                valid: locationData.valid
+            };
+            await processLapCrossing(previousPosition, current, sessionId);
             previousPosition = current;
 
             const syncDelta = latestTelemetryTimestamp
@@ -860,9 +980,13 @@
             if (!navigator.geolocation || locationWatchId !== null) return;
             locationStatusEl.textContent = 'GPS 권한 요청 중...';
             locationWatchId = navigator.geolocation.watchPosition(
-                position => uploadPosition(position).catch(error => {
-                    locationStatusEl.textContent = `GPS Firebase 오류: ${error.message}`;
-                }),
+                position => {
+                    positionQueue = positionQueue
+                        .then(() => uploadPosition(position))
+                        .catch(error => {
+                            locationStatusEl.textContent = `GPS Firebase 오류: ${error.message}`;
+                        });
+                },
                 error => { locationStatusEl.textContent = `GPS 오류: ${error.message}`; },
                 { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
             );
@@ -883,39 +1007,261 @@
             } catch (_) {}
         }
 
-        async function startSession() {
-            activeSessionId = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14);
+        function createSessionId() {
+            const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
+            const suffix = self.crypto?.randomUUID?.().slice(0, 8)
+                || Math.random().toString(36).slice(2, 10);
+            return `${timestamp}_${suffix}`;
+        }
+
+        function resetSessionDisplayState() {
+            locationSequence = 0;
             lapStartTimestamp = null;
             lastCrossingTimestamp = 0;
             lapNumber = 0;
             bestLapMs = null;
+            crossingDirection = 0;
+            lastProcessedPositionTimestamp = 0;
+            lastSessionTelemetrySequence = null;
             routePolyline.setLatLngs([]);
-            await set(ref(db, `sessions/${activeSessionId}/meta`), {
-                active: true,
-                started_at: serverTimestamp(),
-                created_by: auth.currentUser?.uid || null,
-                start_line: startLinePoints.length === 2 ? { a: startLinePoints[0], b: startLinePoints[1] } : null
-            });
-            await set(ref(db, 'control/active_session'), {
-                active: true,
-                id: activeSessionId,
-                started_at: serverTimestamp()
-            });
-            sessionStatusEl.textContent = `SESSION: ${activeSessionId}`;
+            routeHoverLayer.clearLayers();
+            routeHoverSegments.length = 0;
+            previousPosition = null;
+        }
+
+        async function cancelSessionDisconnectHandlers() {
+            const refs = sessionDisconnectRefs;
+            sessionDisconnectRefs = [];
+            await Promise.all(refs.map(item => onDisconnect(item).cancel().catch(() => {})));
+        }
+
+        async function registerSessionDisconnectHandlers(sessionId) {
+            await cancelSessionDisconnectHandlers();
+            const stateRef = ref(db, `sessions/${sessionId}/meta/connection_state`);
+            const timeRef = ref(db, `sessions/${sessionId}/meta/disconnected_at`);
+            await onDisconnect(stateRef).set('disconnected');
+            await onDisconnect(timeRef).set(serverTimestamp());
+            sessionDisconnectRefs = [stateRef, timeRef];
+        }
+
+        function startSessionHeartbeat(sessionId) {
+            clearInterval(sessionHeartbeatTimer);
+            const heartbeat = async () => {
+                if (activeSessionId !== sessionId) return;
+                const controlRef = ref(db, 'control/active_session');
+                const result = await runTransaction(controlRef, current => {
+                    if (!current || current.id !== sessionId
+                        || current.owner_client_id !== CLIENT_INSTANCE_ID) {
+                        return;
+                    }
+                    return {
+                        ...current,
+                        state: 'active',
+                        lease_expires_at_ms: Date.now() + SESSION_LEASE_MS,
+                        last_heartbeat_ms: Date.now()
+                    };
+                }, { applyLocally: false });
+                if (!result.committed) {
+                    sessionStatusEl.textContent = 'SESSION LOST: 다른 클라이언트가 제어 중';
+                    return;
+                }
+                await update(ref(db), {
+                    [`sessions/${sessionId}/meta/connection_state`]: 'connected',
+                    [`sessions/${sessionId}/meta/last_heartbeat_ms`]: serverTimestamp()
+                });
+            };
+            sessionHeartbeatTimer = setInterval(
+                () => heartbeat().catch(error => {
+                    sessionStatusEl.textContent = `HEARTBEAT ERROR: ${error.message}`;
+                }),
+                SESSION_HEARTBEAT_MS
+            );
+        }
+
+        async function activateSessionRuntime(sessionId, recovered = false) {
+            activeSessionId = sessionId;
+            localStorage.setItem(SESSION_STORAGE_KEY, sessionId);
+            resetSessionDisplayState();
+            if (recovered) {
+                const sessionSnapshot = await get(ref(db, `sessions/${sessionId}`));
+                const session = sessionSnapshot.val() || {};
+                const meta = session.meta || {};
+                locationSequence = Number(meta.location_count) || 0;
+                if (meta.start_line?.a && meta.start_line?.b) {
+                    startLinePoints = [meta.start_line.a, meta.start_line.b];
+                    localStorage.setItem(
+                        'eoulsureStartLine',
+                        JSON.stringify(startLinePoints)
+                    );
+                    drawStartLine();
+                }
+                crossingDirection = Number(meta.crossing_direction) || 0;
+                lapStartTimestamp = Number(meta.current_lap_started_at) || null;
+                lastCrossingTimestamp = lapStartTimestamp || 0;
+                const completedLaps = Object.values(session.laps || {})
+                    .filter(lap => lap && lap.valid !== false)
+                    .sort((a, b) => Number(a.lap_number) - Number(b.lap_number));
+                if (completedLaps.length) {
+                    lapNumber = Math.max(
+                        ...completedLaps.map(lap => Number(lap.lap_number) || 0)
+                    );
+                    const lapTimes = completedLaps
+                        .map(lap => Number(lap.lap_time_ms))
+                        .filter(Number.isFinite);
+                    bestLapMs = lapTimes.length ? Math.min(...lapTimes) : null;
+                    const lastLap = completedLaps[completedLaps.length - 1];
+                    if (!lapStartTimestamp) {
+                        lapStartTimestamp = Number(lastLap.end_timestamp_ms) || null;
+                        lastCrossingTimestamp = lapStartTimestamp || 0;
+                    }
+                    updateText(
+                        'lap-last',
+                        formatLap(Number(lastLap.lap_time_ms))
+                    );
+                    updateText('lap-best', formatLap(bestLapMs));
+                }
+            }
+            await registerSessionDisconnectHandlers(sessionId);
+            startSessionHeartbeat(sessionId);
+            sessionStatusEl.textContent = recovered
+                ? `SESSION RECOVERED: ${sessionId}`
+                : `SESSION: ${sessionId}`;
             sessionStartBtn.disabled = true;
             sessionStopBtn.disabled = false;
         }
 
-        async function stopSession() {
+        async function startSession() {
+            if (!auth.currentUser || activeSessionId) return;
+            const sessionId = createSessionId();
+            const controlRef = ref(db, 'control/active_session');
+            const existing = (await get(controlRef)).val();
+            const now = Date.now();
+            const claim = await runTransaction(controlRef, current => {
+                const leaseValid = current?.active
+                    && Number(current.lease_expires_at_ms || 0) > Date.now();
+                if (leaseValid && current.id !== sessionId) return;
+                return {
+                    active: true,
+                    state: 'starting',
+                    id: sessionId,
+                    owner_uid: auth.currentUser.uid,
+                    owner_client_id: CLIENT_INSTANCE_ID,
+                    lease_expires_at_ms: Date.now() + SESSION_LEASE_MS,
+                    started_client_ms: now
+                };
+            }, { applyLocally: false });
+            if (!claim.committed) {
+                throw new Error('다른 탭 또는 장치에서 활성 세션을 사용 중입니다.');
+            }
+
+            const updates = {
+                [`sessions/${sessionId}/meta`]: {
+                    active: true,
+                    state: 'active',
+                    started_at: serverTimestamp(),
+                    created_by: auth.currentUser.uid,
+                    owner_client_id: CLIENT_INSTANCE_ID,
+                    connection_state: 'connected',
+                    location_count: 0,
+                    lap_count: 0,
+                    telemetry_count: 0,
+                    start_line: startLinePoints.length === 2
+                        ? { a: startLinePoints[0], b: startLinePoints[1] }
+                        : null
+                },
+                'control/active_session': {
+                    active: true,
+                    state: 'active',
+                    id: sessionId,
+                    owner_uid: auth.currentUser.uid,
+                    owner_client_id: CLIENT_INSTANCE_ID,
+                    lease_expires_at_ms: Date.now() + SESSION_LEASE_MS,
+                    started_at: serverTimestamp()
+                }
+            };
+            if (existing?.active && existing.id && existing.id !== sessionId
+                && Number(existing.lease_expires_at_ms || 0) <= now) {
+                updates[`sessions/${existing.id}/meta/active`] = false;
+                updates[`sessions/${existing.id}/meta/state`] = 'interrupted';
+                updates[`sessions/${existing.id}/meta/ended_at`] = serverTimestamp();
+                updates[`sessions/${existing.id}/meta/end_reason`] = 'lease_expired';
+            }
+
+            try {
+                await update(ref(db), updates);
+                await activateSessionRuntime(sessionId);
+            } catch (error) {
+                await runTransaction(controlRef, current => (
+                    current?.id === sessionId
+                        ? { active: false, state: 'start_failed', id: '', ended_at: Date.now() }
+                        : current
+                ), { applyLocally: false }).catch(() => {});
+                throw error;
+            }
+        }
+
+        async function stopSession(reason = 'user_stop') {
             if (!activeSessionId) return;
             const endedSessionId = activeSessionId;
+            sessionStopBtn.disabled = true;
+            clearInterval(sessionHeartbeatTimer);
+            sessionHeartbeatTimer = null;
+            await cancelSessionDisconnectHandlers();
+
+            try {
+                const controlSnapshot = await get(ref(db, 'control/active_session'));
+                const updates = {
+                    [`sessions/${endedSessionId}/meta/active`]: false,
+                    [`sessions/${endedSessionId}/meta/state`]: (
+                        reason === 'user_stop' || reason === 'logout'
+                            ? 'completed'
+                            : 'interrupted'
+                    ),
+                    [`sessions/${endedSessionId}/meta/ended_at`]: serverTimestamp(),
+                    [`sessions/${endedSessionId}/meta/end_reason`]: reason,
+                    [`sessions/${endedSessionId}/meta/connection_state`]: 'closed'
+                };
+                if (controlSnapshot.val()?.id === endedSessionId) {
+                    updates['control/active_session'] = {
+                        active: false,
+                        state: 'inactive',
+                        id: '',
+                        ended_at: serverTimestamp(),
+                        end_reason: reason
+                    };
+                }
+                await update(ref(db), updates);
+            } catch (error) {
+                await registerSessionDisconnectHandlers(endedSessionId).catch(() => {});
+                startSessionHeartbeat(endedSessionId);
+                sessionStopBtn.disabled = false;
+                throw error;
+            }
+
             activeSessionId = null;
-            await set(ref(db, `sessions/${endedSessionId}/meta/active`), false);
-            await set(ref(db, `sessions/${endedSessionId}/meta/ended_at`), serverTimestamp());
-            await set(ref(db, 'control/active_session'), { active: false, id: '', ended_at: serverTimestamp() });
+            localStorage.removeItem(SESSION_STORAGE_KEY);
             sessionStatusEl.textContent = 'SESSION: STOPPED';
             sessionStartBtn.disabled = false;
             sessionStopBtn.disabled = true;
+        }
+
+        async function recoverSession() {
+            if (!auth.currentUser) return;
+            const control = (await get(ref(db, 'control/active_session'))).val();
+            const savedId = localStorage.getItem(SESSION_STORAGE_KEY);
+            if (control?.active
+                && control.id
+                && control.owner_uid === auth.currentUser.uid
+                && control.owner_client_id === CLIENT_INSTANCE_ID
+                && (!savedId || savedId === control.id)) {
+                await activateSessionRuntime(control.id, true);
+                return;
+            }
+            localStorage.removeItem(SESSION_STORAGE_KEY);
+            if (control?.active && Number(control.lease_expires_at_ms || 0) > Date.now()) {
+                sessionStatusEl.textContent = 'SESSION: 다른 탭 또는 장치에서 실행 중';
+                sessionStartBtn.disabled = true;
+            }
         }
 
         locationStartBtn.addEventListener('click', startLocation);
@@ -965,19 +1311,50 @@
                     return;
                 }
 
-                latestTelemetryTimestamp = Number(data.measurement_timestamp_ms) || Date.now();
+                latestTelemetryTimestamp = Number(data.measurement_timestamp_ms) || 0;
+                latestTelemetrySample = {
+                    timestampMs: latestTelemetryTimestamp,
+                    speed: toFiniteNumber(data.speed),
+                    radiatorTemp1: toFiniteNumber(data.radiator_temp_1),
+                    radiatorTemp2: toFiniteNumber(data.radiator_temp_2),
+                    radiatorTemp3: toFiniteNumber(data.radiator_temp_3)
+                };
                 if (activeSessionId) {
-                    const sessionSample = { ...data, web_received_timestamp_ms: Date.now() };
-                    set(push(ref(db, `sessions/${activeSessionId}/telemetry`)), sessionSample)
-                        .catch(error => sessionStatusEl.textContent = `TELEMETRY SAVE ERROR: ${error.message}`);
+                    const sessionId = activeSessionId;
+                    const sampleSequence = Number(data.sequence);
+                    if (!Number.isFinite(sampleSequence)
+                        || sampleSequence !== lastSessionTelemetrySequence) {
+                        lastSessionTelemetrySequence = Number.isFinite(sampleSequence)
+                            ? sampleSequence
+                            : null;
+                        const sampleKey = push(ref(db, `sessions/${sessionId}/telemetry`)).key;
+                        const sessionSample = {
+                            ...data,
+                            web_received_timestamp_ms: Date.now()
+                        };
+                        update(ref(db), {
+                            [`sessions/${sessionId}/telemetry/${sampleKey}`]: sessionSample,
+                            [`sessions/${sessionId}/meta/telemetry_count`]: increment(1)
+                        }).catch(error => {
+                            sessionStatusEl.textContent = `TELEMETRY SAVE ERROR: ${error.message}`;
+                        });
+                    }
                 }
 
                 updateText('val-speed', data.speed ?? 0);
                 updateText('val-rpm', data.rpm ?? 0);
                 updateText('val-torque', data.torque ?? 0);
 
-                updateText('val-hv-volt', fmt(data.hv_volt));
+                updateText('val-hv-cell-high', fmt(data.hv_volt_max, 4));
+                updateText('val-hv-cell-low', fmt(data.hv_volt_min, 4));
+                updateText('val-hv-current', data.hv_current ?? 0);
                 updateText('val-hv-temp', data.hv_temp ?? 0);
+                updateText('val-soc', fmt(data.soc, 1));
+                updateText('val-motor-temp', data.motor_temp ?? 0);
+                updateText('val-inverter-temp', data.inverter_temp ?? 0);
+                updateText('val-radiator-temp-1', data.radiator_temp_1 ?? 0);
+                updateText('val-radiator-temp-2', data.radiator_temp_2 ?? 0);
+                updateText('val-radiator-temp-3', data.radiator_temp_3 ?? 0);
 
                 updateText('val-lv1', fmt(data.lv_volt1));
                 updateText('val-lv2', fmt(data.lv_volt2));
@@ -1002,21 +1379,24 @@
                     }
                 }
 
-                updateGauge('soc-hv-bar', 'soc-hv-text', data.soc || 0);
-
-                const lv1_pct = getLiFePO4Percentage(data.lv_volt1);
-                const lv2_pct = getLiFePO4Percentage(data.lv_volt2);
-
-                updateGauge('soc-lv1-bar', 'soc-lv1-text', lv1_pct);
-                updateGauge('soc-lv2-bar', 'soc-lv2-text', lv2_pct);
-
                 const sampleTime = Number(data.measurement_timestamp_ms) || Date.now();
                 const now = new Date(sampleTime).toLocaleTimeString();
 
                 pushData(chartDrive, now, [data.speed || 0, data.rpm || 0]);
                 pushData(chartLv, now, [data.lv_volt1 || 0, data.lv_volt2 || 0]);
-                pushData(chartHvVolt, now, [data.hv_volt || 0]);
+                pushData(chartHvVolt, now, [
+                    data.hv_volt_max || 0,
+                    data.hv_volt_min || 0
+                ]);
+                pushData(chartHvCurrent, now, [data.hv_current || 0]);
                 pushData(chartHvStat, now, [data.hv_temp || 0]);
+                pushData(chartMotorTemp, now, [data.motor_temp || 0]);
+                pushData(chartInverterTemp, now, [data.inverter_temp || 0]);
+                pushData(chartRadiatorTemp, now, [
+                    data.radiator_temp_1 || 0,
+                    data.radiator_temp_2 || 0,
+                    data.radiator_temp_3 || 0
+                ]);
                 pushData(chartG, now, [data.acc_x || 0, data.acc_y || 0]);
             }, (error) => {
                 setStatus("DB DENIED", false);
@@ -1054,11 +1434,19 @@
             }
         });
 
-        logoutBtnEl.addEventListener("click", () => {
-            signOut(auth);
+        logoutBtnEl.addEventListener("click", async () => {
+            logoutBtnEl.disabled = true;
+            try {
+                if (activeSessionId) await stopSession('logout');
+                await signOut(auth);
+            } catch (error) {
+                setLoginMessage(`로그아웃 오류: ${error.message}`, "error");
+            } finally {
+                logoutBtnEl.disabled = false;
+            }
         });
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 setLoginMessage(`로그인됨: ${user.email}`, "ok");
 
@@ -1071,6 +1459,11 @@
                 startTelemetryListener();
                 locationStartBtn.disabled = false;
                 sessionStartBtn.disabled = false;
+                try {
+                    await recoverSession();
+                } catch (error) {
+                    sessionStatusEl.textContent = `SESSION RECOVERY ERROR: ${error.message}`;
+                }
             } else {
                 if (unsubscribeTelemetry) {
                     unsubscribeTelemetry();
@@ -1091,6 +1484,9 @@
                 logoutBtnEl.style.display = "none";
                 if (locationWatchId !== null) navigator.geolocation.clearWatch(locationWatchId);
                 locationWatchId = null;
+                clearInterval(sessionHeartbeatTimer);
+                sessionHeartbeatTimer = null;
+                await cancelSessionDisconnectHandlers();
                 activeSessionId = null;
                 locationStartBtn.disabled = true;
                 locationStopBtn.disabled = true;
