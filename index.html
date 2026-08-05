@@ -294,6 +294,7 @@
         .lap-stat span { display:block; }
         .lap-stat .label { color:var(--text-dim); font-size:0.7rem; }
         .lap-stat .value { margin-top:5px; font-size:1.1rem; font-weight:700; }
+        .gps-disabled { display:none !important; }
         @media (max-width:900px) { body{display:block;height:auto;overflow:auto} aside{width:100%;height:auto} main{padding:18px} .lap-grid{grid-template-columns:repeat(2,1fr)} #track-map{height:360px} }
     </style>
 </head>
@@ -311,7 +312,7 @@
             <div id="login-message">로그인 후 텔레메트리를 읽습니다.</div>
         </div>
 
-        <div class="data-group">
+        <div class="data-group gps-disabled">
             <div class="group-title">Location & Session</div>
             <button id="location-start-btn" type="button" disabled>위치 전송 시작</button>
             <button id="location-stop-btn" class="secondary" type="button" disabled>위치 전송 정지</button>
@@ -342,17 +343,32 @@
             <div class="data-row"><span class="data-label">Cell High</span> <div><span id="val-hv-cell-high" class="data-val" style="color:var(--accent-red)">0.0000</span><span class="unit">V</span></div></div>
             <div class="data-row"><span class="data-label">Cell Low</span> <div><span id="val-hv-cell-low" class="data-val" style="color:var(--accent-blue)">0.0000</span><span class="unit">V</span></div></div>
             <div class="data-row"><span class="data-label">HV Current</span> <div><span id="val-hv-current" class="data-val" style="color:var(--accent-green)">0</span><span class="unit">A</span></div></div>
+            <div class="data-row"><span class="data-label">Pack Voltage</span> <div><span id="val-pack-voltage" class="data-val" style="color:var(--accent-yellow)">0.0</span><span class="unit">V</span></div></div>
             <div class="data-row"><span class="data-label">Temp</span> <div><span id="val-hv-temp" class="data-val">0</span><span class="unit">°C</span></div></div>
             <div class="data-row"><span class="data-label">SOC</span> <div><span id="val-soc" class="data-val" style="color:var(--accent-yellow)">0</span><span class="unit">%</span></div></div>
         </div>
 
         <div class="data-group">
-            <div class="group-title">Thermal System</div>
+            <div class="group-title">Motor and Cooling System</div>
             <div class="data-row"><span class="data-label">Motor</span> <div><span id="val-motor-temp" class="data-val" style="color:var(--accent-orange)">0</span><span class="unit">°C</span></div></div>
             <div class="data-row"><span class="data-label">Inverter</span> <div><span id="val-inverter-temp" class="data-val" style="color:var(--accent-red)">0</span><span class="unit">°C</span></div></div>
             <div class="data-row"><span class="data-label">Radiator 1</span> <div><span id="val-radiator-temp-1" class="data-val" style="color:var(--accent-blue)">0</span><span class="unit">°C</span></div></div>
             <div class="data-row"><span class="data-label">Radiator 2</span> <div><span id="val-radiator-temp-2" class="data-val" style="color:var(--accent-purple)">0</span><span class="unit">°C</span></div></div>
             <div class="data-row"><span class="data-label">Radiator 3</span> <div><span id="val-radiator-temp-3" class="data-val" style="color:var(--accent-green)">0</span><span class="unit">°C</span></div></div>
+        </div>
+
+        <div class="data-group">
+            <div class="group-title">Motor Controller Log</div>
+            <div class="data-row"><span class="data-label">RTD / Drive CAN</span> <div><span id="val-forward1-status" class="data-val">OFF / --</span></div></div>
+            <div class="data-row"><span class="data-label">Reserved</span> <div><span id="val-forward1-reserved" class="data-val">0</span></div></div>
+            <div class="data-row"><span class="data-label">Brake</span> <div><span id="val-brake-pressure" class="data-val">0</span><span class="unit">%</span></div></div>
+            <div class="data-row"><span class="data-label">Mod Index</span> <div><span id="val-mod-index" class="data-val">0</span><span class="unit">raw</span></div></div>
+            <div class="data-row"><span class="data-label">Thermal CAN</span> <div><span id="val-forward2-status" class="data-val">--</span></div></div>
+            <div class="data-row"><span class="data-label">Id Actual</span> <div><span id="val-id-actual" class="data-val">0</span><span class="unit">raw</span></div></div>
+            <div class="data-row"><span class="data-label">Iq Actual</span> <div><span id="val-iq-actual" class="data-val">0</span><span class="unit">raw</span></div></div>
+            <div class="data-row"><span class="data-label">Id Reference</span> <div><span id="val-id-reference" class="data-val">0</span><span class="unit">raw</span></div></div>
+            <div class="data-row"><span class="data-label">Iq Reference</span> <div><span id="val-iq-reference" class="data-val">0</span><span class="unit">raw</span></div></div>
+            <div class="data-row"><span class="data-label">Current CAN</span> <div><span id="val-forward3-status" class="data-val">--</span></div></div>
         </div>
 
         <div class="data-group">
@@ -373,7 +389,7 @@
     </aside>
 
     <main>
-        <div class="map-card">
+        <div class="map-card gps-disabled">
             <div class="lap-grid">
                 <div class="lap-stat"><span class="label">CURRENT LAP</span><span id="lap-current" class="value">--:--.---</span></div>
                 <div class="lap-stat"><span class="label">LAST LAP</span><span id="lap-last" class="value">--:--.---</span></div>
@@ -387,6 +403,11 @@
             <div class="chart-card">
                 <div class="chart-title">DRIVING DYNAMICS</div>
                 <div class="canvas-container"><canvas id="chart-drive"></canvas></div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">FORWARD3 CURRENT DEBUG (RAW)</div>
+                <div class="canvas-container"><canvas id="chart-motor-current"></canvas></div>
             </div>
 
             <div class="chart-card">
@@ -575,6 +596,12 @@
         const maxPoints = 50;
 
         const chartDrive = createChart('chart-drive', ['Speed (km/h)', 'RPM'], ['#2ecc71', '#f39c12'], true);
+        const chartMotorCurrent = createChart(
+            'chart-motor-current',
+            ['Id Actual', 'Iq Actual', 'Id Reference', 'Iq Reference'],
+            ['#3498db', '#f39c12', '#9b59b6', '#2ecc71'],
+            false
+        );
         const chartLv = createChart('chart-lv', ['LV1 (V)', 'LV2 (V)'], ['#3498db', '#9b59b6'], false);
         const chartHvVolt = createChart(
             'chart-hv-volt',
@@ -977,6 +1004,9 @@
         }
 
         function startLocation() {
+            // Browser GPS collection is retired.  GoPro GPS is imported later
+            // through the DataLogging workflow instead of being sent from this UI.
+            return;
             if (!navigator.geolocation || locationWatchId !== null) return;
             locationStatusEl.textContent = 'GPS 권한 요청 중...';
             locationWatchId = navigator.geolocation.watchPosition(
@@ -1264,11 +1294,8 @@
             }
         }
 
-        locationStartBtn.addEventListener('click', startLocation);
-        locationStopBtn.addEventListener('click', stopLocation);
-        sessionStartBtn.addEventListener('click', () => startSession().catch(error => sessionStatusEl.textContent = `SESSION ERROR: ${error.message}`));
-        sessionStopBtn.addEventListener('click', () => stopSession().catch(error => sessionStatusEl.textContent = `SESSION ERROR: ${error.message}`));
-        loadStartLine();
+        // Location, start-line, lap, and session controls are intentionally not
+        // registered: this page no longer requests or uploads browser GPS data.
 
         function setStatus(text, isLive = false) {
             connectionEl.innerText = text;
@@ -1344,10 +1371,21 @@
                 updateText('val-speed', data.speed ?? 0);
                 updateText('val-rpm', data.rpm ?? 0);
                 updateText('val-torque', data.torque ?? 0);
+                updateText('val-forward1-reserved', data.forward1_reserved ?? 0);
+                updateText('val-forward1-status', `${Number(data.rtd_status) === 1 ? 'RTD' : 'OFF'} / ${data.can?.motor_alive ? 'OK' : 'STALE'}`);
+                updateText('val-brake-pressure', data.brake_pressure ?? 0);
+                updateText('val-mod-index', data.mod_index_raw ?? 0);
+                updateText('val-forward2-status', data.can?.motor_temp_alive ? 'OK' : 'STALE');
+                updateText('val-id-actual', data.id_actual_raw ?? 0);
+                updateText('val-iq-actual', data.iq_actual_raw ?? 0);
+                updateText('val-id-reference', data.id_reference_raw ?? 0);
+                updateText('val-iq-reference', data.iq_reference_raw ?? 0);
+                updateText('val-forward3-status', data.can?.motor_curr_alive ? 'OK' : 'STALE');
 
                 updateText('val-hv-cell-high', fmt(data.hv_volt_max, 4));
                 updateText('val-hv-cell-low', fmt(data.hv_volt_min, 4));
                 updateText('val-hv-current', data.hv_current ?? 0);
+                updateText('val-pack-voltage', fmt(data.pack_voltage ?? data.hv_volt));
                 updateText('val-hv-temp', data.hv_temp ?? 0);
                 updateText('val-soc', fmt(data.soc, 1));
                 updateText('val-motor-temp', data.motor_temp ?? 0);
@@ -1362,7 +1400,7 @@
                 updateText('val-acc-x', fmt(data.acc_x, 2));
                 updateText('val-acc-y', fmt(data.acc_y, 2));
 
-                const mcFault = data.mc_fault || 0;
+                const mcFault = data.inverter_error_code ?? data.mc_fault ?? 0;
                 const faultEl = document.getElementById('val-mc-fault');
 
                 if (faultEl) {
@@ -1383,6 +1421,12 @@
                 const now = new Date(sampleTime).toLocaleTimeString();
 
                 pushData(chartDrive, now, [data.speed || 0, data.rpm || 0]);
+                pushData(chartMotorCurrent, now, [
+                    data.id_actual_raw || 0,
+                    data.iq_actual_raw || 0,
+                    data.id_reference_raw || 0,
+                    data.iq_reference_raw || 0
+                ]);
                 pushData(chartLv, now, [data.lv_volt1 || 0, data.lv_volt2 || 0]);
                 pushData(chartHvVolt, now, [
                     data.hv_volt_max || 0,
