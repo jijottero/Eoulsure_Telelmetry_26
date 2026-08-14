@@ -177,6 +177,19 @@
             overflow: hidden;
         }
 
+        .fault-history-card { background-color:var(--panel-bg); border:1px solid rgba(231,76,60,.35); border-radius:20px; padding:25px; box-shadow:var(--shadow-panel); }
+        .fault-history-list { display:grid; gap:8px; max-height:230px; overflow-y:auto; }
+        .fault-history-row { display:grid; grid-template-columns:minmax(165px,.8fr) minmax(100px,.45fr) minmax(220px,2fr); gap:16px; padding:11px 13px; border-radius:8px; background:rgba(231,76,60,.08); border:1px solid rgba(231,76,60,.12); font-size:.82rem; }
+        .fault-history-time { color:var(--text-dim); }
+        .fault-history-code { color:var(--accent-red); font-weight:700; }
+        .fault-history-empty { color:var(--text-dim); font-size:.82rem; }
+        .session-list { display:grid; gap:8px; }
+        .session-list-item { padding:9px 10px; border-radius:8px; background:rgba(255,255,255,.035); border:var(--border-primary); font-size:.72rem; line-height:1.5; }
+        .session-list-item.active { border-color:rgba(46,204,113,.4); }
+        .session-list-name { color:var(--text-main); font-weight:700; }
+        .session-list-meta { color:var(--text-dim); }
+        @media (max-width:850px) { .fault-history-row { grid-template-columns:1fr; gap:4px; } }
+
         #status-badge {
             padding: 8px 16px;
             border-radius: 24px;
@@ -194,7 +207,7 @@
             border-color: rgba(46, 204, 113, 0.2);
         }
 
-        .login-box input {
+        .login-box input, .session-box input {
             width: 100%;
             box-sizing: border-box;
             margin-bottom: 10px;
@@ -207,7 +220,7 @@
             outline: none;
         }
 
-        .login-box input:focus {
+        .login-box input:focus, .session-box input:focus {
             border-color: rgba(52, 152, 219, 0.55);
         }
 
@@ -312,15 +325,27 @@
             <div id="login-message">로그인 후 텔레메트리를 읽습니다.</div>
         </div>
 
-        <div class="data-group gps-disabled">
-            <div class="group-title">Location & Session</div>
-            <button id="location-start-btn" type="button" disabled>위치 전송 시작</button>
-            <button id="location-stop-btn" class="secondary" type="button" disabled>위치 전송 정지</button>
+        <div class="data-group session-box">
+            <div class="group-title">Telemetry Session</div>
+            <input id="session-name" type="text" maxlength="40" placeholder="session name">
             <button id="session-start-btn" type="button" disabled>세션 기록 시작</button>
             <button id="session-stop-btn" class="danger" type="button" disabled>세션 기록 종료</button>
-            <button id="start-line-btn" class="secondary" type="button">스타트 라인 설정</button>
-            <div id="location-status" class="status-line">GPS: 대기 중</div>
             <div id="session-status" class="status-line">SESSION: STOPPED</div>
+            <div id="session-device-status" class="status-line">DEVICE: --</div>
+            <div id="session-count" class="status-line">SAMPLES: 0</div>
+            <div id="session-last-data" class="status-line">LAST DATA: --</div>
+        </div>
+
+        <div class="data-group">
+            <div class="group-title">Recent Sessions</div>
+            <div id="recent-session-list" class="session-list"><div class="fault-history-empty">저장된 세션이 없습니다.</div></div>
+        </div>
+
+        <div class="data-group gps-disabled">
+            <button id="location-start-btn" type="button" disabled>위치 전송 시작</button>
+            <button id="location-stop-btn" type="button" disabled>위치 전송 정지</button>
+            <button id="start-line-btn" type="button">스타트 라인 설정</button>
+            <div id="location-status">GPS: DISABLED</div>
         </div>
 
         <div class="data-group">
@@ -344,6 +369,7 @@
             <div class="data-row"><span class="data-label">Cell Low</span> <div><span id="val-hv-cell-low" class="data-val" style="color:var(--accent-blue)">0.0000</span><span class="unit">V</span></div></div>
             <div class="data-row"><span class="data-label">HV Current</span> <div><span id="val-hv-current" class="data-val" style="color:var(--accent-green)">0</span><span class="unit">A</span></div></div>
             <div class="data-row"><span class="data-label">Pack Voltage</span> <div><span id="val-pack-voltage" class="data-val" style="color:var(--accent-yellow)">0.0</span><span class="unit">V</span></div></div>
+            <div class="data-row"><span class="data-label">DCL</span> <div><span id="val-dcl" class="data-val" style="color:var(--accent-orange)">0</span></div></div>
             <div class="data-row"><span class="data-label">Temp</span> <div><span id="val-hv-temp" class="data-val">0</span><span class="unit">°C</span></div></div>
             <div class="data-row"><span class="data-label">SOC</span> <div><span id="val-soc" class="data-val" style="color:var(--accent-yellow)">0</span><span class="unit">%</span></div></div>
         </div>
@@ -389,6 +415,10 @@
     </aside>
 
     <main>
+        <section class="fault-history-card">
+            <div class="chart-title">MC FAULT HISTORY · RECENT 100</div>
+            <div id="mc-fault-history" class="fault-history-list"><div class="fault-history-empty">기록된 MC fault가 없습니다.</div></div>
+        </section>
         <div class="map-card gps-disabled">
             <div class="lap-grid">
                 <div class="lap-stat"><span class="label">CURRENT LAP</span><span id="lap-current" class="value">--:--.---</span></div>
@@ -426,6 +456,11 @@
             </div>
 
             <div class="chart-card">
+                <div class="chart-title">DISCHARGE CURRENT LIMIT (DCL)</div>
+                <div class="canvas-container"><canvas id="chart-dcl"></canvas></div>
+            </div>
+
+            <div class="chart-card">
                 <div class="chart-title">HV TEMPERATURE</div>
                 <div class="canvas-container"><canvas id="chart-hv-stat"></canvas></div>
             </div>
@@ -456,7 +491,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import {
             getDatabase, ref, onValue, set, push, get, update, runTransaction,
-            onDisconnect, increment, serverTimestamp
+            onDisconnect, increment, serverTimestamp, query, orderByKey, limitToLast
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -610,6 +645,7 @@
             false
         );
         const chartHvCurrent = createChart('chart-hv-current', ['HV Current (A)'], ['#2ecc71'], false);
+        const chartDcl = createChart('chart-dcl', ['DCL'], ['#f39c12'], false);
         const chartHvStat = createChart('chart-hv-stat', ['Temp (°C)'], ['#ffffff'], false);
         const chartMotorTemp = createChart('chart-motor-temp', ['Motor (°C)'], ['#f39c12'], false);
         const chartInverterTemp = createChart('chart-inverter-temp', ['Inverter (°C)'], ['#e74c3c'], false);
@@ -684,6 +720,10 @@
 
         let unsubscribeTelemetry = null;
         let unsubscribeConnection = null;
+        let unsubscribeFaultHistory = null;
+        let unsubscribeActiveSession = null;
+        let unsubscribeSessionMeta = null;
+        let unsubscribeSessionIndex = null;
         let locationWatchId = null;
         let locationSequence = 0;
         let activeSessionId = null;
@@ -727,6 +767,11 @@
         const startLineBtn = document.getElementById('start-line-btn');
         const locationStatusEl = document.getElementById('location-status');
         const sessionStatusEl = document.getElementById('session-status');
+        const sessionNameEl = document.getElementById('session-name');
+        const sessionDeviceStatusEl = document.getElementById('session-device-status');
+        const sessionCountEl = document.getElementById('session-count');
+        const sessionLastDataEl = document.getElementById('session-last-data');
+        const recentSessionListEl = document.getElementById('recent-session-list');
 
         const map = L.map('track-map').setView([37.5665, 126.9780], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1111,121 +1156,43 @@
         async function activateSessionRuntime(sessionId, recovered = false) {
             activeSessionId = sessionId;
             localStorage.setItem(SESSION_STORAGE_KEY, sessionId);
-            resetSessionDisplayState();
-            if (recovered) {
-                const sessionSnapshot = await get(ref(db, `sessions/${sessionId}`));
-                const session = sessionSnapshot.val() || {};
-                const meta = session.meta || {};
-                locationSequence = Number(meta.location_count) || 0;
-                if (meta.start_line?.a && meta.start_line?.b) {
-                    startLinePoints = [meta.start_line.a, meta.start_line.b];
-                    localStorage.setItem(
-                        'eoulsureStartLine',
-                        JSON.stringify(startLinePoints)
-                    );
-                    drawStartLine();
-                }
-                crossingDirection = Number(meta.crossing_direction) || 0;
-                lapStartTimestamp = Number(meta.current_lap_started_at) || null;
-                lastCrossingTimestamp = lapStartTimestamp || 0;
-                const completedLaps = Object.values(session.laps || {})
-                    .filter(lap => lap && lap.valid !== false)
-                    .sort((a, b) => Number(a.lap_number) - Number(b.lap_number));
-                if (completedLaps.length) {
-                    lapNumber = Math.max(
-                        ...completedLaps.map(lap => Number(lap.lap_number) || 0)
-                    );
-                    const lapTimes = completedLaps
-                        .map(lap => Number(lap.lap_time_ms))
-                        .filter(Number.isFinite);
-                    bestLapMs = lapTimes.length ? Math.min(...lapTimes) : null;
-                    const lastLap = completedLaps[completedLaps.length - 1];
-                    if (!lapStartTimestamp) {
-                        lapStartTimestamp = Number(lastLap.end_timestamp_ms) || null;
-                        lastCrossingTimestamp = lapStartTimestamp || 0;
-                    }
-                    updateText(
-                        'lap-last',
-                        formatLap(Number(lastLap.lap_time_ms))
-                    );
-                    updateText('lap-best', formatLap(bestLapMs));
-                }
-            }
-            await registerSessionDisconnectHandlers(sessionId);
-            startSessionHeartbeat(sessionId);
-            sessionStatusEl.textContent = recovered
-                ? `SESSION RECOVERED: ${sessionId}`
-                : `SESSION: ${sessionId}`;
+            sessionStatusEl.textContent = recovered ? `SESSION RECOVERED: ${sessionId}` : `SESSION: ${sessionId}`;
             sessionStartBtn.disabled = true;
             sessionStopBtn.disabled = false;
+            sessionNameEl.disabled = true;
+            if (unsubscribeSessionMeta) unsubscribeSessionMeta();
+            unsubscribeSessionMeta = onValue(ref(db, `session_index/${sessionId}`), snapshot => {
+                const meta = snapshot.val() || {};
+                sessionStatusEl.textContent = `SESSION: ${meta.name || sessionId}`;
+                sessionDeviceStatusEl.textContent = `DEVICE: ${(meta.device_state || 'WAITING').toUpperCase()}`;
+                sessionCountEl.textContent = `SAMPLES: ${Number(meta.telemetry_count || 0).toLocaleString()}`;
+                const last = Number(meta.last_telemetry_at || 0);
+                sessionLastDataEl.textContent = last ? `LAST DATA: ${new Date(last).toLocaleString('ko-KR')}` : 'LAST DATA: --';
+            });
         }
 
         async function startSession() {
             if (!auth.currentUser || activeSessionId) return;
-            const sessionId = createSessionId();
+            const sessionName = sessionNameEl.value.trim();
+            if (!sessionName) throw new Error('세션 이름을 입력하세요.');
+            const safeName = sessionName.replace(/[.#$\[\]\/]/g, '-').replace(/\s+/g, '-').slice(0, 40);
+            const sessionId = `${createSessionId()}_${safeName}`;
             const controlRef = ref(db, 'control/active_session');
-            const existing = (await get(controlRef)).val();
-            const now = Date.now();
             const claim = await runTransaction(controlRef, current => {
-                const leaseValid = current?.active
-                    && Number(current.lease_expires_at_ms || 0) > Date.now();
-                if (leaseValid && current.id !== sessionId) return;
-                return {
-                    active: true,
-                    state: 'starting',
-                    id: sessionId,
-                    owner_uid: auth.currentUser.uid,
-                    owner_client_id: CLIENT_INSTANCE_ID,
-                    lease_expires_at_ms: Date.now() + SESSION_LEASE_MS,
-                    started_client_ms: now
-                };
+                if (current?.active) return;
+                return { active: true, state: 'starting', id: sessionId, name: sessionName, owner_uid: auth.currentUser.uid, started_client_ms: Date.now() };
             }, { applyLocally: false });
-            if (!claim.committed) {
-                throw new Error('다른 탭 또는 장치에서 활성 세션을 사용 중입니다.');
-            }
-
-            const updates = {
-                [`sessions/${sessionId}/meta`]: {
-                    active: true,
-                    state: 'active',
-                    started_at: serverTimestamp(),
-                    created_by: auth.currentUser.uid,
-                    owner_client_id: CLIENT_INSTANCE_ID,
-                    connection_state: 'connected',
-                    location_count: 0,
-                    lap_count: 0,
-                    telemetry_count: 0,
-                    start_line: startLinePoints.length === 2
-                        ? { a: startLinePoints[0], b: startLinePoints[1] }
-                        : null
-                },
-                'control/active_session': {
-                    active: true,
-                    state: 'active',
-                    id: sessionId,
-                    owner_uid: auth.currentUser.uid,
-                    owner_client_id: CLIENT_INSTANCE_ID,
-                    lease_expires_at_ms: Date.now() + SESSION_LEASE_MS,
-                    started_at: serverTimestamp()
-                }
-            };
-            if (existing?.active && existing.id && existing.id !== sessionId
-                && Number(existing.lease_expires_at_ms || 0) <= now) {
-                updates[`sessions/${existing.id}/meta/active`] = false;
-                updates[`sessions/${existing.id}/meta/state`] = 'interrupted';
-                updates[`sessions/${existing.id}/meta/ended_at`] = serverTimestamp();
-                updates[`sessions/${existing.id}/meta/end_reason`] = 'lease_expired';
-            }
-
+            if (!claim.committed) throw new Error('다른 탭 또는 장치에서 활성 세션을 사용 중입니다.');
+            const meta = { active:true, state:'active', name:sessionName, started_at:serverTimestamp(), created_by:auth.currentUser.uid, telemetry_count:0, device_state:'waiting' };
             try {
-                await update(ref(db), updates);
+                await update(ref(db), {
+                    [`sessions/${sessionId}/meta`]: meta,
+                    [`session_index/${sessionId}`]: meta,
+                    'control/active_session': { active:true, state:'active', id:sessionId, name:sessionName, owner_uid:auth.currentUser.uid, started_at:serverTimestamp() }
+                });
                 await activateSessionRuntime(sessionId);
             } catch (error) {
-                await runTransaction(controlRef, current => (
-                    current?.id === sessionId
-                        ? { active: false, state: 'start_failed', id: '', ended_at: Date.now() }
-                        : current
-                ), { applyLocally: false }).catch(() => {});
+                await runTransaction(controlRef, current => current?.id === sessionId ? { active:false, state:'start_failed', id:'', ended_at:Date.now() } : current, { applyLocally:false }).catch(() => {});
                 throw error;
             }
         }
@@ -1234,64 +1201,128 @@
             if (!activeSessionId) return;
             const endedSessionId = activeSessionId;
             sessionStopBtn.disabled = true;
-            clearInterval(sessionHeartbeatTimer);
-            sessionHeartbeatTimer = null;
-            await cancelSessionDisconnectHandlers();
-
             try {
                 const controlSnapshot = await get(ref(db, 'control/active_session'));
                 const updates = {
                     [`sessions/${endedSessionId}/meta/active`]: false,
-                    [`sessions/${endedSessionId}/meta/state`]: (
-                        reason === 'user_stop' || reason === 'logout'
-                            ? 'completed'
-                            : 'interrupted'
-                    ),
+                    [`sessions/${endedSessionId}/meta/state`]: 'completed',
                     [`sessions/${endedSessionId}/meta/ended_at`]: serverTimestamp(),
                     [`sessions/${endedSessionId}/meta/end_reason`]: reason,
-                    [`sessions/${endedSessionId}/meta/connection_state`]: 'closed'
+                    [`sessions/${endedSessionId}/meta/device_state`]: 'stopping',
+                    [`session_index/${endedSessionId}/active`]: false,
+                    [`session_index/${endedSessionId}/state`]: 'completed',
+                    [`session_index/${endedSessionId}/ended_at`]: serverTimestamp(),
+                    [`session_index/${endedSessionId}/end_reason`]: reason,
+                    [`session_index/${endedSessionId}/device_state`]: 'stopping'
                 };
-                if (controlSnapshot.val()?.id === endedSessionId) {
-                    updates['control/active_session'] = {
-                        active: false,
-                        state: 'inactive',
-                        id: '',
-                        ended_at: serverTimestamp(),
-                        end_reason: reason
-                    };
-                }
+                if (controlSnapshot.val()?.id === endedSessionId) updates['control/active_session'] = { active:false, state:'inactive', id:'', ended_at:serverTimestamp(), end_reason:reason };
                 await update(ref(db), updates);
             } catch (error) {
-                await registerSessionDisconnectHandlers(endedSessionId).catch(() => {});
-                startSessionHeartbeat(endedSessionId);
                 sessionStopBtn.disabled = false;
                 throw error;
             }
-
             activeSessionId = null;
+            if (unsubscribeSessionMeta) { unsubscribeSessionMeta(); unsubscribeSessionMeta = null; }
             localStorage.removeItem(SESSION_STORAGE_KEY);
             sessionStatusEl.textContent = 'SESSION: STOPPED';
+            sessionDeviceStatusEl.textContent = 'DEVICE: --';
+            sessionCountEl.textContent = 'SAMPLES: 0';
+            sessionLastDataEl.textContent = 'LAST DATA: --';
             sessionStartBtn.disabled = false;
             sessionStopBtn.disabled = true;
+            sessionNameEl.disabled = false;
         }
 
         async function recoverSession() {
             if (!auth.currentUser) return;
             const control = (await get(ref(db, 'control/active_session'))).val();
-            const savedId = localStorage.getItem(SESSION_STORAGE_KEY);
-            if (control?.active
-                && control.id
-                && control.owner_uid === auth.currentUser.uid
-                && control.owner_client_id === CLIENT_INSTANCE_ID
-                && (!savedId || savedId === control.id)) {
+            if (control?.active && control.id) {
+                sessionNameEl.value = control.name || '';
                 await activateSessionRuntime(control.id, true);
                 return;
             }
             localStorage.removeItem(SESSION_STORAGE_KEY);
-            if (control?.active && Number(control.lease_expires_at_ms || 0) > Date.now()) {
-                sessionStatusEl.textContent = 'SESSION: 다른 탭 또는 장치에서 실행 중';
-                sessionStartBtn.disabled = true;
-            }
+        }
+
+        function startActiveSessionListener() {
+            if (unsubscribeActiveSession) unsubscribeActiveSession();
+            unsubscribeActiveSession = onValue(ref(db, 'control/active_session'), snapshot => {
+                const control = snapshot.val();
+                if (control?.active && control.id) {
+                    sessionNameEl.value = control.name || '';
+                    if (activeSessionId !== control.id) activateSessionRuntime(control.id, true).catch(error => { sessionStatusEl.textContent = `SESSION SYNC ERROR: ${error.message}`; });
+                    return;
+                }
+                if (activeSessionId) {
+                    activeSessionId = null;
+                    localStorage.removeItem(SESSION_STORAGE_KEY);
+                    if (unsubscribeSessionMeta) { unsubscribeSessionMeta(); unsubscribeSessionMeta = null; }
+                }
+                sessionStatusEl.textContent = 'SESSION: STOPPED';
+                sessionDeviceStatusEl.textContent = 'DEVICE: --';
+                sessionCountEl.textContent = 'SAMPLES: 0';
+                sessionLastDataEl.textContent = 'LAST DATA: --';
+                sessionStartBtn.disabled = !auth.currentUser;
+                sessionStopBtn.disabled = true;
+                sessionNameEl.disabled = false;
+            });
+        }
+
+        function startSessionIndexListener() {
+            if (unsubscribeSessionIndex) unsubscribeSessionIndex();
+            unsubscribeSessionIndex = onValue(query(ref(db, 'session_index'), orderByKey(), limitToLast(20)), snapshot => {
+                const sessions = [];
+                snapshot.forEach(child => sessions.push({ id:child.key, ...(child.val() || {}) }));
+                recentSessionListEl.replaceChildren();
+                if (!sessions.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'fault-history-empty';
+                    empty.textContent = '저장된 세션이 없습니다.';
+                    recentSessionListEl.appendChild(empty);
+                    return;
+                }
+                sessions.reverse().forEach(session => {
+                    const item = document.createElement('div');
+                    item.className = `session-list-item${session.active ? ' active' : ''}`;
+                    const name = document.createElement('div');
+                    name.className = 'session-list-name';
+                    name.textContent = session.name || session.id;
+                    const meta = document.createElement('div');
+                    meta.className = 'session-list-meta';
+                    const started = Number(session.started_at || 0);
+                    meta.textContent = `${started ? new Date(started).toLocaleString('ko-KR') : '--'} · ${Number(session.telemetry_count || 0).toLocaleString()} samples${session.active ? ' · RECORDING' : ''}`;
+                    item.append(name, meta);
+                    recentSessionListEl.appendChild(item);
+                });
+            });
+        }
+
+        function startFaultHistoryListener() {
+            if (unsubscribeFaultHistory) unsubscribeFaultHistory();
+            unsubscribeFaultHistory = onValue(query(ref(db, 'mc_fault_history'), orderByKey(), limitToLast(100)), snapshot => {
+                const events = [];
+                snapshot.forEach(child => events.push(child.val()));
+                events.sort((a,b) => Number(b.measurement_timestamp_ms || 0) - Number(a.measurement_timestamp_ms || 0));
+                const historyEl = document.getElementById('mc-fault-history');
+                historyEl.replaceChildren();
+                if (!events.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'fault-history-empty';
+                    empty.textContent = '기록된 MC fault가 없습니다.';
+                    historyEl.appendChild(empty);
+                    return;
+                }
+                events.forEach(event => {
+                    const code = Number(event.code) || 0;
+                    const row = document.createElement('div');
+                    row.className = 'fault-history-row';
+                    const time = document.createElement('span'); time.className = 'fault-history-time'; time.textContent = new Date(Number(event.measurement_timestamp_ms) || 0).toLocaleString('ko-KR');
+                    const codeEl = document.createElement('span'); codeEl.className = 'fault-history-code'; codeEl.textContent = `0x${code.toString(16).toUpperCase()}`;
+                    const message = document.createElement('span'); message.textContent = event.message || mcFaultMap[code] || 'Unknown Error';
+                    row.append(time, codeEl, message);
+                    historyEl.appendChild(row);
+                });
+            });
         }
 
         // Location, start-line, lap, and session controls are intentionally not
@@ -1346,28 +1377,6 @@
                     radiatorTemp2: toFiniteNumber(data.radiator_temp_2),
                     radiatorTemp3: toFiniteNumber(data.radiator_temp_3)
                 };
-                if (activeSessionId) {
-                    const sessionId = activeSessionId;
-                    const sampleSequence = Number(data.sequence);
-                    if (!Number.isFinite(sampleSequence)
-                        || sampleSequence !== lastSessionTelemetrySequence) {
-                        lastSessionTelemetrySequence = Number.isFinite(sampleSequence)
-                            ? sampleSequence
-                            : null;
-                        const sampleKey = push(ref(db, `sessions/${sessionId}/telemetry`)).key;
-                        const sessionSample = {
-                            ...data,
-                            web_received_timestamp_ms: Date.now()
-                        };
-                        update(ref(db), {
-                            [`sessions/${sessionId}/telemetry/${sampleKey}`]: sessionSample,
-                            [`sessions/${sessionId}/meta/telemetry_count`]: increment(1)
-                        }).catch(error => {
-                            sessionStatusEl.textContent = `TELEMETRY SAVE ERROR: ${error.message}`;
-                        });
-                    }
-                }
-
                 updateText('val-speed', data.speed ?? 0);
                 updateText('val-rpm', data.rpm ?? 0);
                 updateText('val-torque', data.torque ?? 0);
@@ -1386,6 +1395,7 @@
                 updateText('val-hv-cell-low', fmt(data.hv_volt_min, 4));
                 updateText('val-hv-current', data.hv_current ?? 0);
                 updateText('val-pack-voltage', fmt(data.pack_voltage ?? data.hv_volt));
+                updateText('val-dcl', data.dcl ?? 0);
                 updateText('val-hv-temp', data.hv_temp ?? 0);
                 updateText('val-soc', fmt(data.soc, 1));
                 updateText('val-motor-temp', data.motor_temp ?? 0);
@@ -1433,6 +1443,7 @@
                     data.hv_volt_min || 0
                 ]);
                 pushData(chartHvCurrent, now, [data.hv_current || 0]);
+                pushData(chartDcl, now, [data.dcl ?? 0]);
                 pushData(chartHvStat, now, [data.hv_temp || 0]);
                 pushData(chartMotorTemp, now, [data.motor_temp || 0]);
                 pushData(chartInverterTemp, now, [data.inverter_temp || 0]);
@@ -1478,10 +1489,23 @@
             }
         });
 
+        sessionStartBtn.addEventListener('click', async () => {
+            sessionStartBtn.disabled = true;
+            try { await startSession(); }
+            catch (error) {
+                sessionStatusEl.textContent = `SESSION START ERROR: ${error.message}`;
+                if (!activeSessionId) sessionStartBtn.disabled = false;
+            }
+        });
+
+        sessionStopBtn.addEventListener('click', async () => {
+            try { await stopSession('user_stop'); }
+            catch (error) { sessionStatusEl.textContent = `SESSION STOP ERROR: ${error.message}`; }
+        });
+
         logoutBtnEl.addEventListener("click", async () => {
             logoutBtnEl.disabled = true;
             try {
-                if (activeSessionId) await stopSession('logout');
                 await signOut(auth);
             } catch (error) {
                 setLoginMessage(`로그아웃 오류: ${error.message}`, "error");
@@ -1501,8 +1525,10 @@
 
                 startConnectionListener();
                 startTelemetryListener();
+                startFaultHistoryListener();
+                startActiveSessionListener();
+                startSessionIndexListener();
                 locationStartBtn.disabled = false;
-                sessionStartBtn.disabled = false;
                 try {
                     await recoverSession();
                 } catch (error) {
@@ -1518,6 +1544,9 @@
                     unsubscribeConnection();
                     unsubscribeConnection = null;
                 }
+                if (unsubscribeFaultHistory) { unsubscribeFaultHistory(); unsubscribeFaultHistory = null; }
+                if (unsubscribeActiveSession) { unsubscribeActiveSession(); unsubscribeActiveSession = null; }
+                if (unsubscribeSessionIndex) { unsubscribeSessionIndex(); unsubscribeSessionIndex = null; }
 
                 setStatus("LOGIN REQUIRED", false);
                 setLoginMessage("로그인 후 텔레메트리를 읽습니다.", "");
@@ -1531,6 +1560,7 @@
                 clearInterval(sessionHeartbeatTimer);
                 sessionHeartbeatTimer = null;
                 await cancelSessionDisconnectHandlers();
+                if (unsubscribeSessionMeta) { unsubscribeSessionMeta(); unsubscribeSessionMeta = null; }
                 activeSessionId = null;
                 locationStartBtn.disabled = true;
                 locationStopBtn.disabled = true;
